@@ -35,87 +35,42 @@ app.use((req, res, next) => {
 
 app.post('/api/analyze', async (req, res) => {
   try {
-    const { transcript } = req.body;
+    const { customerName, reviewDate, primaryContact, additionalConsiderations, transcript } = req.body;
     
     if (!transcript) {
-      console.error('No transcript provided');
       return res.status(400).json({ 
         error: 'No transcript provided',
         details: 'Request validation failed'
       });
     }
 
-    console.log('Analyzing transcript:', transcript.substring(0, 50) + '...');
+    const systemPrompt = `You are an expert MongoDB solutions architect creating a design review document. 
+Generate a professional Markdown-formatted design review document based on the provided template and responses.
 
-    const systemPrompt = `You are a MongoDB database design expert and solutions architect specializing in MongoDB best practices and design patterns. Analyze the provided customer discussion transcript and create a structured report focused exclusively on MongoDB architecture and implementation.
+Use the following Markdown features:
+1. # For main headers
+2. ## For section headers
+3. ### For subsection headers
+4. \`\`\`javascript, \`\`\`json, or \`\`\`shell for code blocks
+5. > For important notes or quotes
+6. * For unordered lists
+7. 1. For ordered lists
+8. **Bold** for emphasis
+9. \`inline code\` for technical terms
+10. Tables for structured data
+11. --- for horizontal rules between major sections
 
-Focus areas should include:
-- Schema design and modeling
-- Indexing strategies
-- Query patterns and performance
-- Data consistency and integrity
-- Scaling considerations
-- Security best practices
-- MongoDB Atlas specific features when relevant
+Structure the document with:
+1. # Title and Overview
+2. ## Executive Summary
+3. ## Detailed Analysis (with subsections)
+4. ## Recommendations
+5. ## Next Steps
+6. ## References
 
-Create a report with four sections:
+Format all MongoDB commands, queries, and configuration examples in proper code blocks with appropriate syntax highlighting.
 
-1. What We Heard: 
-   - Summarize the key technical requirements and constraints
-   - Identify the specific MongoDB use cases and data access patterns
-   - Note any scale, performance, or availability requirements
-
-2. Issues and Antipatterns: 
-   - Identify MongoDB-specific antipatterns in the current or proposed design
-   - Flag any practices that violate MongoDB best practices
-   - Highlight scalability, performance, or operational risks
-   - Note any misuse of MongoDB features or capabilities
-
-3. Recommendations:
-   - Provide specific, actionable MongoDB best practices based on official MongoDB documentation
-   - Include concrete schema design suggestions
-   - Specify recommended index types and strategies
-   - Suggest specific MongoDB features and capabilities that address the requirements
-   - Include example document structures where relevant
-
-4. References:
-   - Link to specific MongoDB documentation pages
-   - Reference official MongoDB design pattern guides
-   - Cite MongoDB blog posts and white papers
-   - Include links to relevant MongoDB University courses
-   - Reference MongoDB Atlas documentation when applicable
-
-All recommendations must be based on current MongoDB best practices (version 7.0+) and official MongoDB documentation.
-
-Format the response as a JSON object with the following structure:
-{
-  "whatWeHeard": "string",
-  "issues": ["string"],
-  "recommendations": ["string"],
-  "references": [{
-    "title": "string",
-    "url": "string",
-    "documentationType": "official_docs|blog|whitepaper|university",
-    "relevance": "string"
-  }]
-}
-
-Use only official MongoDB documentation sources:
-- https://www.mongodb.com/docs/
-- https://www.mongodb.com/blog/
-- https://university.mongodb.com/
-- https://www.mongodb.com/developer/
-
-Ensure all recommendations follow MongoDB's official best practices for:
-- Document model design
-- Index design and implementation
-- Query optimization
-- Transaction usage
-- Scaling patterns
-- Security implementation
-- Operational excellence`;
-
-    console.log('Sending request to OpenAI...');
+Ensure all technical recommendations are specific and actionable, with proper MongoDB terminology and version-specific features.`;
     
     const completion = await openai.chat.completions.create({
       model: "gpt-4-turbo-preview",
@@ -125,13 +80,8 @@ Ensure all recommendations follow MongoDB's official best practices for:
       ],
       response_format: { type: "json_object" }
     });
-
-    console.log('Received response from OpenAI');
     
     const analysis = JSON.parse(completion.choices[0].message.content);
-    
-    console.log('Successfully parsed OpenAI response');
-    
     res.json(analysis);
   } catch (error) {
     console.error('Detailed error:', {
@@ -150,11 +100,85 @@ Ensure all recommendations follow MongoDB's official best practices for:
 
 // Add a health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'ok',
-    openaiConfigured: !!process.env.OPENAI_API_KEY,
+    service: 'design-reviewer-backend',
     timestamp: new Date().toISOString()
   });
+});
+
+// Add this to your server.js file
+
+// Add to server.js
+
+app.post('/api/generate', async (req, res) => {
+  try {
+    const { templateName, templateType, sections, metadata } = req.body;
+    
+    if (!templateName || !sections) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: 'Template name and sections are required'
+      });
+    }
+
+    const systemPrompt = `You are an expert MongoDB solutions architect creating a design review document. 
+Generate a professional Markdown-formatted design review document based on the provided template and responses.
+
+The document should:
+1. Include a clear header with metadata
+2. Organize content into clear sections with proper Markdown formatting
+3. Include specific, actionable MongoDB recommendations
+4. Format code examples, configs, and technical details in proper Markdown code blocks
+5. Add relevant MongoDB best practices and considerations
+6. Include a clear summary and next steps section
+
+Output should be in Markdown format with proper headers, lists, code blocks, and formatting.`;
+
+    const userContent = `
+Template: ${templateName}
+Type: ${templateType}
+Generated: ${metadata.generatedAt}
+Version: ${metadata.templateVersion}
+
+Review Information:
+${JSON.stringify(sections, null, 2)}
+
+Generate a comprehensive design review document based on this information.`;
+
+    console.log('Generating document with prompt:', userContent);
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent }
+      ],
+    });
+
+    const generatedContent = completion.choices[0].message.content;
+    
+    // Log success but not the entire content
+    console.log('Successfully generated document for:', templateName);
+
+    res.json({
+      message: 'Document generated successfully',
+      content: generatedContent,
+      metadata: {
+        templateName,
+        templateType,
+        generatedAt: metadata.generatedAt,
+        version: metadata.templateVersion
+      }
+    });
+
+  } catch (error) {
+    console.error('Document generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate document',
+      details: error.message
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3003;
