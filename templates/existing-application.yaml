@@ -1,0 +1,23 @@
+id: existing-application-yaml
+name: Existing Application Review
+description: For reviewing and optimizing existing MongoDB applications
+version: "1.0"
+type: design-review
+metadata:
+  author: Michael Lynn
+  lastUpdated: "2024-11-15"
+  tags: 
+    - optimization
+    - performance
+    - modernization
+sections:  # Make sure this is an array
+  - id: application-overview
+    title: Application Overview
+    description: Current state and context of the application
+    questions:
+      - id: app-name
+        type: text
+        label: Application Name
+        required: true
+        placeholder: Name of the existing application
+  # ... more sections
