@@ -1,0 +1,22 @@
+{
+  "timestamp": "2024-11-16T11:18:33.431Z",
+  "summary": {
+    "total": 4,
+    "successful": 4,
+    "failed": 0,
+    "parseErrors": 1
+  },
+  "successfulMigrations": [
+    "data-model-query-index-review",
+    "existing-application-yaml",
+    "healthcare-application-review",
+    "new-application-comprehensive"
+  ],
+  "failedMigrations": [],
+  "parseErrors": [
+    {
+      "file": "example-template-review.yaml",
+      "error": "Invalid template or missing ID"
+    }
+  ]
+}

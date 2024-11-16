@@ -1,0 +1,243 @@
+id: data-model-query-index-review
+name: Data Model, Query Patterns, and Index Review
+description: Focused review template for analyzing MongoDB data models, access
+  patterns, and index strategies.
+version: "1.0"
+type: design-review
+metadata:
+  author: Design Assistant
+  lastUpdated: 2024-11-16T10:59:14.713Z
+  tags:
+    - data-model
+    - query-patterns
+    - indexes
+    - design-review
+globalPromptContext: >
+  As a MongoDB Solutions Architect, analyze this application design with a
+  specific focus on:
+
+  - Schema design and data model relationships (embedding vs. referencing)
+
+  - Query patterns and their alignment with the data model
+
+  - Index design strategies for read/write efficiency
+
+  - Potential anti-patterns in schema or queries
+
+  - Optimization opportunities using MongoDB features like $lookup, aggregation
+  framework, and multikey indexes
+
+
+  Consider MongoDB's latest features (7.0+) and provide specific, actionable
+  recommendations for improving data model and query performance.
+sections:
+  - id: data-model
+    title: Data Model Review
+    description: Evaluate the schema design and relationships between data elements
+    questions:
+      - id: schema-documents
+        type: textarea
+        label: Schema Documentation
+        accept: .json,.yaml,.md
+        multiple: true
+        required: true
+        promptContext: >
+          Upload JSON or YAML files representing your schema design. Evaluate
+          the following:
+
+          1. Embedded vs. referenced relationships
+
+          2. Nesting depth and potential impact on performance
+
+          3. Use of arrays and subdocuments
+
+          4. Alignment with MongoDB schema best practices
+
+          5. Scalability and storage considerations
+      - id: relationships
+        type: dynamic-list
+        label: Data Relationships
+        description: Define relationships between key entities in the data model
+        fields:
+          - name: entity
+            label: Entity Name
+            type: text
+          - name: related_entity
+            label: Related Entity
+            type: text
+          - name: relationship_type
+            label: Relationship Type
+            type: select
+            options:
+              - Embedded
+              - Referenced
+              - One-to-One
+              - One-to-Many
+              - Many-to-Many
+          - name: justification
+            label: Justification
+            type: textarea
+            placeholder: Explain why this relationship is designed this way
+        promptContext: |
+          For each relationship, evaluate:
+          1. If embedding or referencing is appropriate
+          2. Impacts on query performance and data consistency
+          3. Design decisions supporting scaling and operational efficiency
+  - id: query-patterns
+    title: Query Patterns Review
+    description: Analyze the application's key query patterns and their alignment
+      with the data model
+    questions:
+      - id: common-queries
+        type: dynamic-list
+        label: Common Queries
+        description: List key queries executed by the application
+        fields:
+          - name: query_name
+            label: Query Name
+            type: text
+          - name: query_description
+            label: Query Description
+            type: textarea
+          - name: query_example
+            label: Query Example
+            type: textarea
+            placeholder: Provide an example query (e.g., MongoDB shell or aggregation
+              pipeline)
+          - name: frequency
+            label: Query Frequency
+            type: select
+            options:
+              - High
+              - Medium
+              - Low
+        promptContext: >
+          For each query:
+
+          1. Evaluate alignment with the data model
+
+          2. Identify potential performance bottlenecks
+
+          3. Recommend schema changes or query optimizations if necessary
+
+          4. Suggest use of aggregations, projections, or filtering for
+          efficiency
+      - id: query-performance-issues
+        type: textarea
+        label: Query Performance Concerns
+        placeholder: Describe any known query performance issues
+        promptContext: |
+          Analyze known performance concerns. Recommend solutions such as:
+          - Schema adjustments
+          - Improved query structure
+          - Index design enhancements
+  - id: indexes
+    title: Index Strategy Review
+    description: Evaluate index structures for effectiveness and alignment with
+      query patterns
+    questions:
+      - id: existing-indexes
+        type: file-upload
+        label: Index Definitions
+        accept: .json,.yaml,.md
+        multiple: true
+        required: true
+        promptContext: |
+          Upload existing index definitions (JSON or YAML). Evaluate:
+          1. Coverage of common queries
+          2. Use of compound, multikey, and wildcard indexes
+          3. Redundant or unused indexes
+          4. Write amplification impact
+      - id: index-alignment
+        type: dynamic-list
+        label: Index Alignment with Queries
+        description: Map queries to their relevant indexes
+        fields:
+          - name: query_name
+            label: Query Name
+            type: text
+          - name: index_used
+            label: Index Used
+            type: text
+          - name: alignment_score
+            label: Alignment Score
+            type: select
+            options:
+              - Excellent
+              - Good
+              - Poor
+          - name: notes
+            label: Notes
+            type: textarea
+            placeholder: Provide feedback on index effectiveness
+        promptContext: |
+          For each query and its associated index:
+          1. Evaluate whether the index is effective
+          2. Recommend changes to index design or query structure
+          3. Suggest additional indexes if needed
+      - id: indexing-improvements
+        type: textarea
+        label: Suggested Index Improvements
+        placeholder: Provide recommendations for new or optimized indexes
+        promptContext: |
+          Recommend improvements to indexing strategy based on:
+          - Query patterns
+          - Data size and cardinality
+          - Operational considerations like write performance
+analysisPromptTemplate: >
+  Based on the provided data model, query patterns, and index definitions,
+  generate a detailed analysis document with the following sections:
+
+
+  # MongoDB Data Model, Query, and Index Review
+
+
+  ## Executive Summary
+
+  - Overview of data model, query patterns, and indexing strategy
+
+  - Key strengths and areas for improvement
+
+
+  ## Data Model Analysis
+
+  - Embedded vs. referenced relationships
+
+  - Schema design evaluation
+
+  - Recommendations for schema optimization
+
+
+  ## Query Patterns Analysis
+
+  - Common queries and their performance
+
+  - Alignment with schema design
+
+  - Optimization suggestions
+
+
+  ## Index Strategy Analysis
+
+  - Evaluation of current index structures
+
+  - Effectiveness of indexes for queries
+
+  - Suggested new or improved indexes
+
+
+  ## Recommendations
+
+  - Schema adjustments
+
+  - Query optimizations
+
+  - Index strategy improvements
+
+
+  ## Next Steps
+
+  - Immediate actions
+
+  - Long-term considerations for scalability and performance
+source: yaml
